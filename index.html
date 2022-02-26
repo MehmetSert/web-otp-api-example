@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web OTP Api Kullanımı</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="content web-otp-container">
+        <h1>Web OTP Api Kullanımı</h1>
+        <form id="test-otp-form">
+            <div class="form-group">
+                <label>Doğrulama kodu</label>
+                <input type="text" name="sms-code" placeholder="Doğrulama kodu" autocomplete="one-time-code" required>
+            </div>
+            <button type="submit">Doğrula</button>
+        </form>
+    </div>
+
+    <hr>
+
+    <div class="content" id="web-otp-example-sms">
+        <p>Rehberinizde kayıtlı olmayan bir telefon numarasından aşağıdaki gibi bir sms gönderin;</p>
+        <div class="code-container">
+            <code>
+                Doğrulama kodunuz: 1122<br>
+                @web-otp.mehmetsert.com.tr #1122
+            </code>
+        </div>
+    </div>
+
+    <!-- Web OTP API -->
+    <script>
+        if ('OTPCredential' in window) {
+            window.addEventListener('DOMContentLoaded', e => {
+                const input = document.querySelector('input[autocomplete="one-time-code"]');
+                if (!input) return;
+                const ac = new AbortController();
+                const form = input.closest('form');
+                if (form) {
+                    form.addEventListener('submit', e => {
+                        ac.abort();
+                    });
+                }
+                navigator.credentials.get({
+                    otp: {
+                        transport: ['sms']
+                    },
+                    signal: ac.signal
+                }).then(otp => {
+                    input.value = otp.code;
+                    if (form) form.submit();
+                }).catch(err => {
+                    console.log(err);
+                });
+            });
+        }
+    </script>
+
+    <!-- Form submit edildiğinde sms-code değeri varsa formu silip, doğrulama kodunu ekranda göstermek için -->
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("sms-code")) {
+            document.getElementById("test-otp-form").style.display = "none";
+            document.getElementById("web-otp-example-sms").style.display = "none";
+            document.querySelector(".web-otp-container").append("Gönderilen değer: " + urlParams.get("sms-code"));
+        }
+    </script>
+</body>
+
+</html>
